@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<!-- <meta name="viewport" content="width=device-width,initial-scale=1.0"> -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no"/>
+	<title>相册</title>
+	<link rel="stylesheet" href="css/animate.css">
+	<script src="js/zepto.js"></script>
+
+
+
+	<!-- 动态监听屏幕计算rem -->
+	<!-- <script type="text/javascript">
+		
+	(function (doc, win, undefined) {
+	var docEl = doc.documentElement,
+	resizeEvt = 'orientationchange' in win? 'orientationchange' : 'resize',
+	recalc = function () {
+	var clientWidth = docEl.clientWidth;
+	if (clientWidth === undefined) return;
+	docEl.style.fontSize = 20 * (clientWidth / 320) + 'px';
+	};
+	if (doc.addEventListener === undefined) return;
+	win.addEventListener(resizeEvt, recalc, false);
+	doc.addEventListener('DOMContentLoaded', recalc, false)
+})(document, window);
+	</script> -->
+
+
+
+
+
+
+
+	<style>
+		*{
+			padding: 0;
+			margin: 0;
+		}
+		ul{
+			list-style: none;
+		}
+		ul li{
+			float: left;
+			overflow: hidden;
+		}
+		body{
+			background: #000;
+		}
+		.large{
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			height: 100%;
+			background: #000;
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<ul id="container" class="img-container"></ul>
+	<div class="large animated fadeIn">
+		<img id="large_img" class="animated">
+	</div>
+
+	<script>
+		var total=18;
+		var zWin=$(window);
+		var tmpl=" ";
+		var render=function(){
+			var padding=2;
+			var winWidth=zWin.width();
+			var picWidth=Math.floor((winWidth-padding*3)/4);
+			for (var i = 1;i<total;i++) {
+			 	var p=padding;
+			 	var imgSrc='img/'+i+'.jpg';
+			 	if(i%4==1){
+			 		p=0;
+			 	}
+		tmpl+='<li data_id="'+i+'" style="width:'+picWidth+'px;height:'+picWidth+'px;padding-left:'+p+'px;padding-top:2px;"><canvas id="cas_'+i+'" class="animated bounceIn"><canvas/></li>';
+
+			var imgObj=new Image();
+			imgObj.index=i;
+			imgObj.onload=function(){
+				var cvs=$('#cas_'+this.index)[0].getContext("2d");
+				cvs.width=this.width;
+				cvs.height=this.height;
+				cvs.drawImage(this,0,0);
+			}
+			imgObj.src=imgSrc;
+			}
+			$("#container").html(tmpl);
+		}
+		render();
+
+
+		function imgOnlod(_id,callback){
+			$('.large').css({width:zWin.width(),height:zWin.height()}).show();
+			var imgsrc="img/"+_id+".jpg";
+			var imgObj=new Image();
+			imgObj.onload=function(){
+				var w=this.width;
+				var h=this.height;
+				var winWidth=zWin.width();
+				var winHeight=zWin.height();
+				var relW=winHeight*w/h;
+				var relH=winWidth*h/w;
+				var padL=parseInt((winWidth-relW)/2);
+				var padT=parseInt((winHeight-relH)/2);
+				$("#large_img").css("width","auto").css("height","auto").css("padding","0px");
+				if(h/w>1.2){
+					$("#large_img").attr("src",imgsrc).css("height",winHeight).css("padding-left",padL);
+				}else{
+					$("#large_img").attr("src",imgsrc).css("width",winWidth).css("padding-top",padT);
+				}
+				callback&&callback();
+			}
+			imgObj.src=imgsrc;
+		}
+var cid;
+		$("#container").delegate("li","tap",function(){
+			var _id=cid=$(this).attr("data_id");
+			imgOnlod(_id);
+		});
+
+$(".large").tap(
+	function(){
+		$(this).hide();
+	}
+	).swipeLeft(function(){
+		cid++;
+		if(cid>18){
+			cid=18;
+		}else{
+			imgOnlod(cid,function(){
+				$("#large_img")[0].addEventListener("webkitAnimationEnd",function(){
+					$("#large_img").removeClass("bounceInRight");
+					$("#large_img").unbind();
+				},false)
+				$("#large_img").addClass("bounceInRight")
+			})
+		}
+	}).swipeRight(function(){
+		cid--;
+		if(cid<1){
+			cid=1;
+		}else{
+			imgOnlod(cid,function(){
+				$("#large_img")[0].addEventListener("webkitAnimationEnd",function(){
+					$("#large_img").removeClass("bounceInLeft");
+					$("#large_img").unbind();
+				},false)
+				$("#large_img").addClass("bounceInLeft")
+			})
+		}
+	})
+	
+	setInterval(function(){
+		var num1=Math.round(Math.random()*16+1);
+		$("ul li").eq(num1).addClass("animated flipOutY");
+		setTimeout(function(){
+			$("ul li").eq(num1).removeClass("animated flipOutY");
+		},5000);
+	},4000);
+
+
+
+
+
+
+
+
+
+
+	</script>
+</body>
+</html>
